@@ -1,0 +1,10 @@
+[package]
+authors = ["Marc Brinkmann <git@marcbrinkmann.de>"]
+name = "failing-safe-unwrap"
+version = "0.1.0"
+
+[dependencies]
+
+[dependencies.safe_unwrap]
+optional = false
+path = "../../"
