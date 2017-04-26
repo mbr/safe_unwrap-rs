@@ -1,10 +1,10 @@
 [package]
 name = "safe_unwrap"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Marc Brinkmann <git@marcbrinkmann.de>",
            "Yann Leretaille <y.leretaille@gmail.com>"
           ]
-description = "The safe_unwrap macros allows unwrapping and annotating that the unwrap will never fail. Does not require `std`."
+description = "The safe_unwrap crate allows unwrapping and annotating that the unwrap will never fail. Does not require `std`."
 license = "MIT"
 documentation = "https://docs.rs/safe_unwrap"
 repository = "https://github.com/mbr/safe_unwrap-rs"
