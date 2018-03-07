@@ -1,6 +1,6 @@
 [package]
 name = "safe_unwrap"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Marc Brinkmann <git@marcbrinkmann.de>",
            "Yann Leretaille <y.leretaille@gmail.com>",
            "Andreas Fackler <Andreas.Fackler@49nord.de>"
