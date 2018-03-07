@@ -2,7 +2,8 @@
 name = "safe_unwrap"
 version = "0.2.0"
 authors = ["Marc Brinkmann <git@marcbrinkmann.de>",
-           "Yann Leretaille <y.leretaille@gmail.com>"
+           "Yann Leretaille <y.leretaille@gmail.com>",
+           "Andreas Fackler <Andreas.Fackler@49nord.de>"
           ]
 description = "The safe_unwrap crate allows unwrapping and annotating that the unwrap will never fail. Does not require `std`."
 license = "MIT"
@@ -10,3 +11,13 @@ documentation = "https://docs.rs/safe_unwrap"
 repository = "https://github.com/mbr/safe_unwrap-rs"
 
 [dependencies]
+
+[features]
+default = []
+
+# The `std` feature adds `safe_unwrap_or_abort` and `safe_unwrap_or_exit`,
+# but requires the standard library.
+std = []
+
+[package.metadata.docs.rs]
+features = [ "std" ]

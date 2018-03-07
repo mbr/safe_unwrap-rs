@@ -33,12 +33,21 @@
 //! use safe_unwrap::SafeUnwrap;
 //!
 //! fn main() {
-//!    let res = Some(42);
+//!     let res = Some(42);
 //!
-//!    // works only for Result and Option types
-//!    let val = res.safe_unwrap("is constant value");
+//!     // works only for Result and Option types
+//!     let val = res.safe_unwrap("is constant value");
 //!
-//!    assert_eq!(val, 42);
+//!     assert_eq!(val, 42);
+//!
+//!     #[cfg(feature = "std")]
+//!     {
+//!         // With `std`, two additional methods are available.
+//!         let val = res.unwrap_or_abort("is constant value");
+//!         assert_eq!(val, 42);
+//!         let val = res.unwrap_or_exit("is constant value");
+//!         assert_eq!(val, 42);
+//!     }
 //! }
 //! ```
 //!
@@ -47,7 +56,21 @@
 //! LLVM optimizer to remove the unused static string `"is constant value"`
 //! from the resulting executable (often works in release mode).
 //!
-//! Does not require `std`.
+//!
+//! ## `std` support
+//!
+//! By default, `no_std` is supported. With the `std` feature, `SafeUnwrap` has
+//! two additional methods, which require the standard library. They work the
+//! same way as `safe_unwrap`, but:
+//!
+//! * `unwrap_or_abort` aborts the process instead of panicking.
+//! * `unwrap_or_exit` exits with code 1 instead of panicking.
+
+#[cfg(feature = "std")]
+extern crate std;
+
+#[cfg(feature = "std")]
+use std::io::Write;
 
 // TODO: replace `cfg(debug_assertions)` with something cleaner using a build
 //       script
@@ -68,6 +91,10 @@ macro_rules! safe_unwrap {
 
 pub trait SafeUnwrap<T> {
     fn safe_unwrap(self, msg: &'static str) -> T;
+    #[cfg(feature = "std")]
+    fn unwrap_or_abort(self, msg: &'static str) -> T;
+    #[cfg(feature = "std")]
+    fn unwrap_or_exit(self, msg: &'static str) -> T;
 }
 
 #[cfg(not(debug_assertions))]
@@ -75,6 +102,18 @@ impl<T, E: core::fmt::Debug> SafeUnwrap<T> for Result<T, E> {
     #[inline]
     fn safe_unwrap(self, _: &'static str) -> T {
         self.unwrap()
+    }
+
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_abort(self, _: &'static str) -> T {
+        self.unwrap_or_else(|_| std::process::abort())
+    }
+
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_exit(self, _: &'static str) -> T {
+        self.unwrap_or_else(|_| std::process::exit(1))
     }
 }
 
@@ -84,6 +123,18 @@ impl<T> SafeUnwrap<T> for Option<T> {
     fn safe_unwrap(self, _: &'static str) -> T {
         self.unwrap()
     }
+
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_abort(self, _: &'static str) -> T {
+        self.unwrap_or_else(std::process::abort)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_exit(self, _: &'static str) -> T {
+        self.unwrap_or_else(|| std::process::exit(1))
+    }
 }
 
 #[cfg(debug_assertions)]
@@ -91,6 +142,24 @@ impl<T, E: core::fmt::Debug> SafeUnwrap<T> for Result<T, E> {
     #[inline]
     fn safe_unwrap(self, msg: &'static str) -> T {
         self.expect(msg)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_abort(self, msg: &'static str) -> T {
+        self.unwrap_or_else(|_| {
+            let _ = writeln!(std::io::stderr(), "{}", msg);
+            std::process::abort()
+        })
+    }
+
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_exit(self, msg: &'static str) -> T {
+        self.unwrap_or_else(|_| {
+            let _ = writeln!(std::io::stderr(), "{}", msg);
+            std::process::exit(1)
+        })
     }
 }
 
@@ -100,8 +169,25 @@ impl<T> SafeUnwrap<T> for Option<T> {
     fn safe_unwrap(self, msg: &'static str) -> T {
         self.expect(msg)
     }
-}
 
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_abort(self, msg: &'static str) -> T {
+        self.unwrap_or_else(|| {
+            let _ = writeln!(std::io::stderr(), "{}", msg);
+            std::process::abort()
+        })
+    }
+
+    #[cfg(feature = "std")]
+    #[inline]
+    fn unwrap_or_exit(self, msg: &'static str) -> T {
+        self.unwrap_or_else(|| {
+            let _ = writeln!(std::io::stderr(), "{}", msg);
+            std::process::exit(1)
+        })
+    }
+}
 
 #[cfg(test)]
 mod tests {
