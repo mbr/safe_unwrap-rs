@@ -92,9 +92,9 @@ macro_rules! safe_unwrap {
 pub trait SafeUnwrap<T> {
     fn safe_unwrap(self, msg: &'static str) -> T;
     #[cfg(feature = "std")]
-    fn unwrap_or_abort(self, msg: &'static str) -> T;
+    fn unwrap_or_abort(self, msg: &'static str) -> !;
     #[cfg(feature = "std")]
-    fn unwrap_or_exit(self, msg: &'static str) -> T;
+    fn unwrap_or_exit(self, msg: &'static str) -> !;
 }
 
 #[cfg(not(debug_assertions))]
@@ -106,13 +106,13 @@ impl<T, E: core::fmt::Debug> SafeUnwrap<T> for Result<T, E> {
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_abort(self, _: &'static str) -> T {
+    fn unwrap_or_abort(self, _: &'static str) -> ! {
         self.unwrap_or_else(|_| std::process::abort())
     }
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_exit(self, _: &'static str) -> T {
+    fn unwrap_or_exit(self, _: &'static str) -> ! {
         self.unwrap_or_else(|_| std::process::exit(1))
     }
 }
@@ -126,13 +126,13 @@ impl<T> SafeUnwrap<T> for Option<T> {
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_abort(self, _: &'static str) -> T {
+    fn unwrap_or_abort(self, _: &'static str) -> ! {
         self.unwrap_or_else(std::process::abort)
     }
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_exit(self, _: &'static str) -> T {
+    fn unwrap_or_exit(self, _: &'static str) -> ! {
         self.unwrap_or_else(|| std::process::exit(1))
     }
 }
@@ -146,7 +146,7 @@ impl<T, E: core::fmt::Debug> SafeUnwrap<T> for Result<T, E> {
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_abort(self, msg: &'static str) -> T {
+    fn unwrap_or_abort(self, msg: &'static str) -> ! {
         self.unwrap_or_else(|_| {
             let _ = writeln!(std::io::stderr(), "{}", msg);
             std::process::abort()
@@ -155,7 +155,7 @@ impl<T, E: core::fmt::Debug> SafeUnwrap<T> for Result<T, E> {
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_exit(self, msg: &'static str) -> T {
+    fn unwrap_or_exit(self, msg: &'static str) -> ! {
         self.unwrap_or_else(|_| {
             let _ = writeln!(std::io::stderr(), "{}", msg);
             std::process::exit(1)
@@ -172,7 +172,7 @@ impl<T> SafeUnwrap<T> for Option<T> {
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_abort(self, msg: &'static str) -> T {
+    fn unwrap_or_abort(self, msg: &'static str) -> ! {
         self.unwrap_or_else(|| {
             let _ = writeln!(std::io::stderr(), "{}", msg);
             std::process::abort()
@@ -181,7 +181,7 @@ impl<T> SafeUnwrap<T> for Option<T> {
 
     #[cfg(feature = "std")]
     #[inline]
-    fn unwrap_or_exit(self, msg: &'static str) -> T {
+    fn unwrap_or_exit(self, msg: &'static str) -> ! {
         self.unwrap_or_else(|| {
             let _ = writeln!(std::io::stderr(), "{}", msg);
             std::process::exit(1)
